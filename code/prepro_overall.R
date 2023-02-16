@@ -47,41 +47,10 @@ if(dir.exists(new_dir3) == FALSE){
     
   }
 
-#UNADJUSTED FILE ----
-unadjusted_out <- pheno %>%
+pheno_sub <- pheno %>%
   select(genome_id,
-         all_of(phenotype_cols),
-         elix_weighted_update) %>%
-  drop_na() %>%
-  mutate(elix_weighted_update = NULL)
+         all_of(phenotype_cols)) %>%
+  drop_na()
   
-  write_tsv(unadjusted_out,
-            file = paste0("data/pheno/", phenotype_cols, "/raw.tsv"))
-
-#EVALUATE SIGNIFICANT ELIX ASSOCIATIONS, GENERATE ADJUSTED ----
-  model <- paste0("summary(lm(",
-                  phenotype_cols,
-                  " ~ elix_weighted_update, data = pheno))")
-  
-  out_model <- eval(str2lang(model))
-  
-  out_coefs <- out_model$coefficients
-  
-  if(out_model$r.squared > 0.10){
-    
-    adjusted_out <- pheno %>%
-      mutate(adjusted_phenotype = eval(str2lang(phenotype_cols)) - (elix_weighted_update*out_coefs[2,1] + out_coefs[1,1])) %>%
-      #view()
-      select(genome_id,
-             adjusted_phenotype,
-             elix_weighted_update) %>%
-      drop_na() %>%
-      mutate(elix_weighted_update = NULL) #%>%
-      #view()
-    
-    colnames(adjusted_out) <- c("genome_id",
-                                phenotype_cols)
-    
-    write_tsv(adjusted_out,
-              file = paste0("data/pheno/", phenotype_cols, "/adjusted.tsv"))
-  }
+write_tsv(pheno_sub,
+          file = paste0("data/pheno/", phenotype_cols, "/handsoff.tsv"))
