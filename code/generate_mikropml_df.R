@@ -22,39 +22,35 @@ paste0(snakemake@params[['path']])
 geno <- read.delim(file = snakemake@params[['path']],
                    row.names = 1)
 
-# if(snakemake@wildcards[['genome']] == "pan"){
-#   
-#   print(paste0("using pan genome path:", snakemake@params[['pan_path']]))
-#   
-#   geno <- read.delim(file = snakemake@params[['pan_path']],
-#                      row.names = 1)
-#   
-# }else if(snakemake@wildcards[['genome']] == "core"){
-#   
-#   print(paste0("using core genome path:", snakemake@params[['core_path']]))
-#   
-#   geno <- read.delim(file = snakemake@params[['core_path']],
-#                      row.names = 1)
-#   
-# }else if(snakemake@wildcards[['genome']] == "gene"){
-#   
-#   print(paste0("using gene genome path:", snakemake@params[['gene_path']]))
-#   
-#   geno <- read.delim(file = snakemake@params[['gene_path']],
-#                      row.names = 1)
-#   
-# }else if(snakemake@wildcards[['genome']] == "struct"){
-#   
-#   print(paste0("using gene genome path:", snakemake@params[['struct_path']]))
-#   
-#   geno <- read.delim(file = snakemake@params[['struct_path']],
-#                      row.names = 1)
-#   
-# }
+#FEATURE SELECTION ----
+feature <- read_csv(snakemake@input[["feature_file"]])
 
-print("Geno matrix has completed read in")
+feature_sub <- feature %>%
+  select(full_names,
+         all_of(colnames(pheno_merge))) %>%
+  filter(if_any(where(is.numeric), ~.x == 1))
 
-geno_merge <- t(geno)
+index <- sapply(feature_sub$full_names,
+                function(x){
+                  
+                  which(x == geno$variant)
+                  
+                })
+
+if(length(index) == length(feature_sub$full_names)){
+  stop()
+}
+if(!any(is.na(index))){
+  stop()
+}
+
+geno_sub <- geno[index,] %>%
+  select(variant,
+         all_of(rownames(pheno_merge))) %>%
+  mutate(variant = gsub("_$", "", variant)) %>%
+  column_to_rownames("variant")
+
+geno_merge <- t(geno_sub)
 
 if(sum(rownames(pheno_merge) %in% rownames(geno_merge)) != length(rownames(pheno_merge))){
   stop("mismatch between pheno and geno contents")
