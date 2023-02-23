@@ -36,7 +36,9 @@ rule run_ml:
         outcome_colname='{phenotype}',
         method="{method}",
         seed="{seed}",
-        kfold=kfold
+        kfold=kfold,
+        alpha_var=alpha_var,
+        lambda_var=lambda_var
     resources:
         ncores=ncores,
         mem_mb = get_mem_mb_low
