@@ -6,6 +6,8 @@ genome = config['genome']
 ncores = config['ncores']
 ml_methods = config['ml_methods']
 kfold = config['kfold']
+alpha_var = config['alpha_var']
+lambda_var = config['lambda_var']
 
 nseeds = config['nseeds']
 start_seed = 100
