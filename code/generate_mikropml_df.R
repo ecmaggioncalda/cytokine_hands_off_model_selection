@@ -11,24 +11,34 @@ future::plan(future::multicore, workers = snakemake@resources[["ncores"]])
 #PHENO ----
 paste0(snakemake@input[["pheno"]])
 pheno <- readr::read_delim(file = snakemake@input[["pheno"]],
-                           delim = "\t")
+                           delim = "\t",
+                           col_names = TRUE)
 
 pheno_merge <- as.data.frame(pheno)
 rownames(pheno_merge) <- pheno_merge$genome_id
 pheno_merge <- pheno_merge[, -1, drop = FALSE]
 
+print("pheno_merge has been successfully created")
+dim(pheno_merge)
+
 #GENO ----
 paste0(snakemake@params[['path']])
-geno <- read.delim(file = snakemake@params[['path']],
-                   row.names = 1)
+geno <- readr::read_delim(file = snakemake@params[['path']],
+                          col_names = TRUE)
+
+print("geno matrix has been successfully read in")
+dim(geno)
 
 #FEATURE SELECTION ----
-feature <- read_csv(snakemake@input[["feature_file"]])
+feature <- read_csv(file = snakemake@input[["feature_file"]])
 
 feature_sub <- feature %>%
   select(full_names,
          all_of(colnames(pheno_merge))) %>%
   filter(if_any(where(is.numeric), ~.x == 1))
+
+print("feature matrix has been successfully read in and subsetted for phenotype")
+dim(feature_sub)
 
 index <- sapply(feature_sub$full_names,
                 function(x){
@@ -37,11 +47,11 @@ index <- sapply(feature_sub$full_names,
                   
                 })
 
-if(length(index) == length(feature_sub$full_names)){
-  stop()
+if(length(index) != length(feature_sub$full_names)){
+  stop("not all indexes were identified in the geno matrix")
 }
-if(!any(is.na(index))){
-  stop()
+if(any(is.na(index))){
+  stop("not all indices were identified in the geno matrix")
 }
 
 geno_sub <- geno[index,] %>%
