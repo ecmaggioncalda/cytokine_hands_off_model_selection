@@ -35,6 +35,7 @@ ml_results <- mikropml::run_ml(
   outcome_colname = snakemake@params[['outcome_colname']],
   find_feature_importance = TRUE,
   hyperparameters = new_hp,
+  perf_metric_name = "Rsquared",
   kfold = as.numeric(snakemake@params[['kfold']]),
   seed = as.numeric(snakemake@params[["seed"]])
 )
